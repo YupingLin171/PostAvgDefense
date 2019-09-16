@@ -54,12 +54,13 @@ def integratedForward(model, sps, batchSize, nClasses, device='cpu', voteMethod=
         feats = nn.functional.softmax(feats, dim=1)
         feat = torch.mean(feats, dim=0, keepdim=True)
     else:
-        # default method: avg_feat
+        # default method: avg_softmax
+        feats = nn.functional.softmax(feats, dim=1)
         feat = torch.mean(feats, dim=0, keepdim=True)
     
     return feat, feats
 
-# not updated
+# not updated, deprecated
 def integratedForward_cls(model, sps, batchSize, nClasses, device='cpu', count_votes=False):
     N = sps.size(0)
     feats = torch.empty(N, nClasses)
@@ -368,7 +369,7 @@ def findNeighbors_randPick_vgg(model, sp, K, r=[2], direction='both', device='cp
     
     return nbs
 
-# not updated
+# not updated, deprecated
 def findNeighbors_feats_lastLy_vgg(model, sp, K, r=[2], direction='both', device='cpu', includeOriginal=True):
     # only accept single sample
     if sp.size(0) != 1:
@@ -434,7 +435,7 @@ def findNeighbors_feats_lastLy_vgg(model, sp, K, r=[2], direction='both', device
     
     return nbs
 
-# not updated
+# not updated, deprecated
 def findNeighbors_feats_approx_vgg(model, sp, K, r=[2], direction='both', device='cpu', includeOriginal=True):
     # only accept single sample
     if sp.size(0) != 1:
@@ -539,7 +540,7 @@ def formSquad_vgg(method, model, sp, K, r=[2], direction='both', device='cpu', i
         nbs = findNeighbors_feats_approx_vgg(model, sp, K, r, direction=direction, device=device, includeOriginal=includeOriginal)
     else:
         # if invalid method, use default setting. (actually should raise error here)
-        nbs = findNeighbors_approx_vgg(model, sp, K, r, direction=direction, device=device)
+        nbs = findNeighbors_random(sp, K, r, direction=direction)
         if includeOriginal:
             nbs = torch.cat([sp, nbs], dim=0)
         
@@ -606,7 +607,7 @@ def findNeighbors_approx_resnet(model, sp, K, r=[2], direction='both', device='c
     return nbs
     
 
-def findNeighbors_approx_resnet_cifar10(model, sp, K, r=[2], direction='both', device='cpu'):
+def findNeighbors_approx_resnet_small(model, sp, K, r=[2], direction='both', device='cpu'):
     # only accept single sample
     if sp.size(0) != 1:
         return None
@@ -676,7 +677,7 @@ def formSquad_resnet(method, model, sp, K, r=[2], direction='both', device='cpu'
         if includeOriginal:
             nbs = torch.cat([sp, nbs], dim=0)
     elif method == 'approx_cifar10':
-        nbs = findNeighbors_approx_resnet_cifar10(model, sp, K, r, direction=direction, device=device)
+        nbs = findNeighbors_approx_resnet_small(model, sp, K, r, direction=direction, device=device)
         if includeOriginal:
             nbs = torch.cat([sp, nbs], dim=0)
     else:
