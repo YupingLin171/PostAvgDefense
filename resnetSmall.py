@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 '''
 Properly implemented ResNet-s for CIFAR10 as described in paper [1].
 

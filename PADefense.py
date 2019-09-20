@@ -27,7 +27,7 @@ def checkConfidence(scores, K=10):
     return hScores[0] / torch.sum(hScores[:K])
     
 
-def integratedForward(model, sps, batchSize, nClasses, device='cpu', voteMethod='avg_feat'):
+def integratedForward(model, sps, batchSize, nClasses, device='cpu', voteMethod='avg_softmax'):
     N = sps.size(0)
     feats = torch.empty(N, nClasses)
     model = model.to(device)
