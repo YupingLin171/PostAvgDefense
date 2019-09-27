@@ -17,6 +17,7 @@ class FoolboxAttackWrapper(robustml.attack.Attack):
         self._attacker = attack
     
     def run(self, x, y, target):
+        # model requires image in (C, H, W), but robustml provides (H, W, C)
         # transpose x to accommodate pytorch's axis arrangement convention
         x = np.transpose(x, (2, 0, 1))
         if target is not None:
@@ -37,7 +38,7 @@ def pgdAttack(victim_model):    # victim_model should be model wrapped with fool
     attacker = attacks.RandomStartProjectedGradientDescentAttack(victim_model, crt.Misclassification(), distance=distances.Linfinity)
     return FoolboxAttackWrapper(attacker)
     
-def deepfoolAttack(victim_model):   # victim_model should be model wrapped with foolbox model
+def dfAttack(victim_model):   # victim_model should be model wrapped with foolbox model
     attacker = attacks.DeepFoolAttack(victim_model, crt.Misclassification())
     return FoolboxAttackWrapper(attacker)
     

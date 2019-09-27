@@ -34,6 +34,7 @@ class PostAveragedResNet152(robustml.model.Model):
         return self._threat_model
         
     def classify(self, x):
+        # model requires image in (C, H, W), but robustml provides (H, W, C)
         # transpose x to accommodate pytorch's axis arrangement convention
         x = torch.as_tensor(np.transpose(x, (2, 0, 1)))
         
@@ -103,6 +104,7 @@ class PostAveragedResNet110(robustml.model.Model):
         return self._threat_model
         
     def classify(self, x):
+        # model requires image in (C, H, W), but robustml provides (H, W, C)
         # transpose x to accommodate pytorch's axis arrangement convention
         x = torch.as_tensor(np.transpose(x, (2, 0, 1)))
         
