@@ -23,7 +23,7 @@ import foolbox.attacks as attacks
 import foolbox.distances as distances
 import foolbox.adversarial as adversarial
 
-import KNDefense as kndef
+import PADefense as padef
 import visualHelper as vh
 
 # ==============================
@@ -38,11 +38,11 @@ fix_test_set = False
 rnd_seed = 20190501
 
 # number of adversarial samples to test
-kImgs = 5000 # 'all'
+kImgs = 5000 # or 'all' to use the whole dataset
 K = 15
 R = 30
 r = [[R/3, 2*R/3, R]]
-attack_range = 8 / 255 # 0.1
+attack_range = 8 / 255
 batchSize = 100
 nClasses = 1000
 num_targets_retry = 10  # used only in targeted attack
@@ -57,7 +57,7 @@ dataDir = '/local/ssd/yuping/videoLearning/ILSVRC2012/val'
 showCharts = True
 showNoiseMaps = False
 showCorrectSamples = False
-chartSaveDir = './rresults_FGSM_N5000/expm_random_sfmx_K15_r10-20-30_linf8_255'
+chartSaveDir = './rnResults_FGSM_N5000/expm_random_sfmx_K15_r30_linf8_255'
 
 # normalization preprocessing required by the pretrained model
 mean=[0.485, 0.456, 0.406]
@@ -168,17 +168,17 @@ for inx in inx_sq:
     x = normalize(sp).unsqueeze(0)
     x_squad = []
     for i in range(len(r)):
-        x_squad.append(kndef.formSquad_resnet(sample_method[i], model, x, K, r[i], direction=shift_direction, device=device, includeOriginal=include_original_img))
+        x_squad.append(padef.formSquad_resnet(sample_method[i], model, x, K, r[i], direction=shift_direction, device=device, includeOriginal=include_original_img))
     
     y = [None] * len(r)
     y_feats = [None] * len(r)
     entropyScores = torch.ones(len(r)) * torch.tensor(float('Inf'))
     for i in range(len(r)):
         if sample_method[i].startswith('feats'):
-            y[i], y_feats[i] = kndef.integratedForward_cls(model, x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
+            y[i], y_feats[i] = padef.integratedForward_cls(model, x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
         else:
-            y[i], y_feats[i] = kndef.integratedForward(model, x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
-        entropyScores[i] = kndef.checkEntropy(y[i])
+            y[i], y_feats[i] = padef.integratedForward(model, x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
+        entropyScores[i] = padef.checkEntropy(y[i])
     
     selectedInx = torch.argmin(entropyScores).item()
     y = y[selectedInx]
@@ -270,17 +270,17 @@ for inx in inx_sq:
     
         adv_x_squad = []
         for i in range(len(r)):
-            adv_x_squad.append(kndef.formSquad_resnet(sample_method[i], model, adv_x, K, r[i], direction=shift_direction, device=device, includeOriginal=include_original_img))
+            adv_x_squad.append(padef.formSquad_resnet(sample_method[i], model, adv_x, K, r[i], direction=shift_direction, device=device, includeOriginal=include_original_img))
         
         adv_y = [None] * len(r)
         adv_y_feats = [None] * len(r)
         adv_entropyScores = torch.ones(len(r)) * torch.tensor(float('Inf'))
         for i in range(len(r)):
             if sample_method[i].startswith('feats'):
-                adv_y[i], adv_y_feats[i] = kndef.integratedForward_cls(model, adv_x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
+                adv_y[i], adv_y_feats[i] = padef.integratedForward_cls(model, adv_x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
             else:
-                adv_y[i], adv_y_feats[i] = kndef.integratedForward(model, adv_x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
-            adv_entropyScores[i] = kndef.checkEntropy(adv_y[i])
+                adv_y[i], adv_y_feats[i] = padef.integratedForward(model, adv_x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
+            adv_entropyScores[i] = padef.checkEntropy(adv_y[i])
         
         selectedInx = torch.argmin(adv_entropyScores).item()
         adv_y = adv_y[selectedInx]

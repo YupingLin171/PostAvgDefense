@@ -94,13 +94,13 @@ def plotPredStats(feats, lb, K=10, image=None, noiseImage=None, savePath=None):
         ax3.eventplot(preds.unsqueeze(1).numpy(), orientation='vertical', colors=clr3)
         ax3.set_yticks(candidates)
         ax3.set_yticklabels([str(x) for x in candidates])
-        # ax3.set_xlabel('sample index')
-        # ax3.set_ylabel('class')
+        ax3.set_xlabel('sample index')
+        ax3.set_ylabel('class')
 
     # axis 4, the input image
     if image is not None:
         ax4.imshow(image)
-        # ax4.set_title('Input Image')
+        ax4.set_title('Input Image')
         ax4.set_axis_off()
     
     # save figure and close

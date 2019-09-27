@@ -23,9 +23,9 @@ import foolbox.attacks as attacks
 import foolbox.distances as distances
 import foolbox.adversarial as adversarial
 
-import KNDefense as kndef
+import PADefense as padef
 import visualHelper as vh
-import resnet as ylrsn
+import resnetSmall as rnsmall
 
 # ==============================
 # set parameters
@@ -43,7 +43,7 @@ kImgs = 'all'
 K = 15
 R = 6
 r = [[R/3, 2*R/3, R]]
-attack_range = 8 / 255 # 0.1
+attack_range = 8 / 255
 batchSize = 1000
 nClasses = 10
 num_targets_retry = 3  # used only in targeted attack
@@ -59,7 +59,7 @@ trainedModelPath = './trainedModel/resnet110.th'
 showCharts = True
 showNoiseMaps = False
 showCorrectSamples = False
-chartSaveDir = './results_CIFAR10_FGSM_N10000/expm_random_sfmx_K15_r2-4-6_linf8_255'
+chartSaveDir = './rnResults_CIFAR10_FGSM_N10000/expm_random_sfmx_K15_r6_linf8_255'
 
 # normalization preprocessing required by the pretrained model
 mean=[0.485, 0.456, 0.406]
@@ -80,7 +80,7 @@ for k, v in checkpoint['state_dict'].items():
     # remove 'module.' prefix introduced by DataParallel, if any
     if k.startswith('module.'):
         paramDict[k[7:]] = v
-model = ylrsn.resnet110()
+model = rnsmall.resnet110()
 model.load_state_dict(paramDict)
 model = model.to(device)
 model = model.eval()
@@ -177,17 +177,17 @@ for inx in inx_sq:
     x = normalize(sp).unsqueeze(0)
     x_squad = []
     for i in range(len(r)):
-        x_squad.append(kndef.formSquad_resnet(sample_method[i], model, x, K, r[i], direction=shift_direction, device=device, includeOriginal=include_original_img))
+        x_squad.append(padef.formSquad_resnet(sample_method[i], model, x, K, r[i], direction=shift_direction, device=device, includeOriginal=include_original_img))
     
     y = [None] * len(r)
     y_feats = [None] * len(r)
     entropyScores = torch.ones(len(r)) * torch.tensor(float('Inf'))
     for i in range(len(r)):
         if sample_method[i].startswith('feats'):
-            y[i], y_feats[i] = kndef.integratedForward_cls(model, x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
+            y[i], y_feats[i] = padef.integratedForward_cls(model, x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
         else:
-            y[i], y_feats[i] = kndef.integratedForward(model, x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
-        entropyScores[i] = kndef.checkEntropy(y[i])
+            y[i], y_feats[i] = padef.integratedForward(model, x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
+        entropyScores[i] = padef.checkEntropy(y[i])
     
     selectedInx = torch.argmin(entropyScores).item()
     y = y[selectedInx]
@@ -279,17 +279,17 @@ for inx in inx_sq:
     
         adv_x_squad = []
         for i in range(len(r)):
-            adv_x_squad.append(kndef.formSquad_resnet(sample_method[i], model, adv_x, K, r[i], direction=shift_direction, device=device, includeOriginal=include_original_img))
+            adv_x_squad.append(padef.formSquad_resnet(sample_method[i], model, adv_x, K, r[i], direction=shift_direction, device=device, includeOriginal=include_original_img))
         
         adv_y = [None] * len(r)
         adv_y_feats = [None] * len(r)
         adv_entropyScores = torch.ones(len(r)) * torch.tensor(float('Inf'))
         for i in range(len(r)):
             if sample_method[i].startswith('feats'):
-                adv_y[i], adv_y_feats[i] = kndef.integratedForward_cls(model, adv_x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
+                adv_y[i], adv_y_feats[i] = padef.integratedForward_cls(model, adv_x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
             else:
-                adv_y[i], adv_y_feats[i] = kndef.integratedForward(model, adv_x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
-            adv_entropyScores[i] = kndef.checkEntropy(adv_y[i])
+                adv_y[i], adv_y_feats[i] = padef.integratedForward(model, adv_x_squad[i], batchSize, nClasses, device=device, voteMethod=vote_method)
+            adv_entropyScores[i] = padef.checkEntropy(adv_y[i])
         
         selectedInx = torch.argmin(adv_entropyScores).item()
         adv_y = adv_y[selectedInx]
